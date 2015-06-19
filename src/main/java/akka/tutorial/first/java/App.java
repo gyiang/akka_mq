@@ -1,8 +1,6 @@
 package akka.tutorial.first.java;
 
-import akka.actor.ActorRef;
-import akka.actor.Props;
-import akka.actor.UntypedActor;
+import akka.actor.*;
 import akka.routing.RoundRobinRouter;
 import akka.util.Duration;
 
@@ -15,6 +13,9 @@ import java.util.concurrent.TimeUnit;
 public class App {
     public static void main(String[] args) {
         System.out.println("Hello Akka!");
+        App app=new App();
+        app.run(4,10000,10000);
+
     }
 
 
@@ -91,7 +92,7 @@ public class App {
             for (int i = start * nrOfElements; i <= ((start + 1) * nrOfElements - 1); i++) {
                 acc += 4.0 * (1 - (i % 2) * 2) / (2 * i + 1);
             }
-            return 0;
+            return acc;
         }
 
     }
@@ -117,6 +118,7 @@ public class App {
 
         }
 
+
         @Override
         public void onReceive(Object message) {
             // handle message
@@ -140,10 +142,41 @@ public class App {
                     unhandled(message);
                 }
             }
-
         }
     }
 
+    public static class Listener extends UntypedActor {
+        @Override
+        public void onReceive(Object message) throws Exception {
+            if (message instanceof PiApproximation) {
+                PiApproximation approximation = (PiApproximation) message;
+                System.out.println(String.format("\n\tPi approxinmation: \t\t%s\n\tCalculation time:\t%s",
+                        approximation.getPi(), approximation.getDuration()));
+                getContext().system().shutdown();
+            } else {
+                unhandled(message);
+            }
+        }
+    }
+
+    public void run(final int nrOfWorkers, final int nrOfElements, final int nrOfMessages) {
+        // create an akka system
+        ActorSystem system =ActorSystem.create("PiSystem");
+
+        // create the resule listener
+        final  ActorRef listener=system.actorOf(new Props(Listener.class), "listener");
+
+        // create the master
+        ActorRef master =system.actorOf(new Props(new UntypedActorFactory() {
+            @Override
+            public Actor create() {
+                return new Master(nrOfWorkers,nrOfMessages,nrOfElements,listener);
+            }
+        }),"master");
+
+        // start the calculation
+        master.tell(new Calculate());
+    }
 
 }
 
