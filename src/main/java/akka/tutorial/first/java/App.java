@@ -1,7 +1,12 @@
 package akka.tutorial.first.java;
 
+import akka.actor.ActorRef;
+import akka.actor.Props;
 import akka.actor.UntypedActor;
+import akka.routing.RoundRobinRouter;
 import akka.util.Duration;
+
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -13,7 +18,7 @@ public class App {
     }
 
 
-    static class Calulate {
+    static class Calculate {
 
     }
 
@@ -80,6 +85,7 @@ public class App {
 
 
         }
+
         private double calculatePiFor(int start, int nrOfElements) {
             double acc = 0.0;
             for (int i = start * nrOfElements; i <= ((start + 1) * nrOfElements - 1); i++) {
@@ -88,7 +94,54 @@ public class App {
             return 0;
         }
 
+    }
 
+    public static class Master extends UntypedActor {
+
+        private final int nrOfMessages;
+        private final int nrOfElements;
+        private final ActorRef listener;
+        private final ActorRef workerRouter;
+
+        private double pi;
+        private int nrOfResults;
+        private final long start = System.currentTimeMillis();
+
+
+        public Master(final int nrOfWorkers, int nrOfMessages, int nrOfElements, ActorRef listener) {
+            this.nrOfMessages = nrOfMessages;
+            this.nrOfElements = nrOfElements;
+            this.listener = listener;
+            this.workerRouter = this.getContext().actorOf(new Props(Worker.class)
+                    .withRouter(new RoundRobinRouter(nrOfWorkers)), "workerRouter");
+
+        }
+
+        @Override
+        public void onReceive(Object message) {
+            // handle message
+            if (message instanceof Calculate) {
+                for (int start = 0; start < nrOfMessages; start++) {
+                    workerRouter.tell(new Work(start, nrOfElements), getSelf());
+                }
+            } else if (message instanceof Result) {
+                Result result = (Result) message;
+                pi += result.getValue();
+                nrOfResults += 1;
+                if (nrOfResults == nrOfMessages) {
+                    // send the result to listner
+                    Duration duration = Duration.create(System.currentTimeMillis() - start,
+                            TimeUnit.MILLISECONDS);
+                    listener.tell(new PiApproximation(pi, duration), getSelf());
+                    // stops this actor and all its supervised childeren
+                    getContext().stop(getSelf());
+
+                } else {
+                    unhandled(message);
+                }
+            }
+
+        }
     }
 
 
