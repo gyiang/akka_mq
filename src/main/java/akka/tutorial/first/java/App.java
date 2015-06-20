@@ -3,6 +3,7 @@ package akka.tutorial.first.java;
 import akka.actor.*;
 import akka.routing.RoundRobinRouter;
 import akka.util.Duration;
+import com.typesafe.config.ConfigFactory;
 
 import java.util.concurrent.TimeUnit;
 
@@ -14,7 +15,7 @@ public class App {
     public static void main(String[] args) {
         System.out.println("Hello Akka!");
         App app=new App();
-        app.run(4,10000,10000);
+        app.run(4, 10000, 10000);
 
     }
 
@@ -161,7 +162,7 @@ public class App {
 
     public void run(final int nrOfWorkers, final int nrOfElements, final int nrOfMessages) {
         // create an akka system
-        ActorSystem system =ActorSystem.create("PiSystem");
+        ActorSystem system =ActorSystem.create("PiSystem", ConfigFactory.load(("application")));
 
         // create the resule listener
         final  ActorRef listener=system.actorOf(new Props(Listener.class), "listener");
