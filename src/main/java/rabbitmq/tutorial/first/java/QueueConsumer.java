@@ -20,6 +20,7 @@ import java.util.Map;
  *
  */
 public class QueueConsumer extends EndPoint implements Runnable,Consumer{
+    static int cnt=0;
     public QueueConsumer(String endPointName) throws IOException {
         super(endPointName);
     }
@@ -50,6 +51,10 @@ public class QueueConsumer extends EndPoint implements Runnable,Consumer{
     public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties basicProperties, byte[] body) throws IOException {
         Map map= (HashMap) SerializationUtils.deserialize(body);
         System.out.println("Message Number "+ map.get("message number") + " received.");
+        synchronized (this){
+            cnt++;
+        }
+
     }
 
 

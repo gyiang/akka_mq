@@ -14,12 +14,21 @@ public class Main {
 
         Producer producer=new Producer("queue");
 
-        for (int i = 0; i < 10000; i++) {
+        long startTime=System.currentTimeMillis();
+        for (int i = 0; i < 10; i++) {
             HashMap message=new HashMap();
             message.put("message number",i);
             producer.sendMessage(message);
             System.out.println("Message Number "+i+" send.");
         }
+
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println((System.currentTimeMillis()-startTime)/1000.0 + "s");
+        System.out.println(QueueConsumer.cnt);
 
     }
 
