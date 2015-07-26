@@ -1,4 +1,4 @@
-package rabbitmq.tutorial.first.java.quickstart;
+package rabbitmq.tutorial.first.java.quickstart.workqueue;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -29,11 +29,10 @@ public class NewTask {
 
         // 消息持久化 null->PERSISTENT_TEXT_PLAIN
         // 非健壮的持久化保证，可能导致消息丢失
-        channel.basicPublish("",QUEUE_NAME, MessageProperties.PERSISTENT_TEXT_PLAIN,message.getBytes());
-        System.out.println(" [x] Sent '" + message + "'");
-
-
-
+        for (int i = 0; i < 10 ; i++) {
+            channel.basicPublish("",QUEUE_NAME, MessageProperties.PERSISTENT_TEXT_PLAIN,message.getBytes());
+            System.out.println(" [x] Sent '" + message + "'");
+        }
 
     }
 

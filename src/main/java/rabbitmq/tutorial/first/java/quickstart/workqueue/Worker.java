@@ -1,4 +1,4 @@
-package rabbitmq.tutorial.first.java.quickstart;
+package rabbitmq.tutorial.first.java.quickstart.workqueue;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -24,15 +24,18 @@ public class Worker {
         channel.queueDeclare(QUEUE_NAME, durable, false, false, null);
         System.out.println("[*] waiting for messages.To exit press ctrl+z");
 
-        QueueingConsumer consumer=new QueueingConsumer(channel);
-        boolean autoAck=false;
-        channel.basicConsume(QUEUE_NAME,false,consumer);
 
         // 公平分发
         // 告知RabbitMQ不要同时给一个工作者超过一个任务
         // 1个工作者处理完成，发送确认之前不要给它分发一个新的消息
         int prefetchcount=1;
         channel.basicQos(prefetchcount);
+
+        QueueingConsumer consumer=new QueueingConsumer(channel);
+        boolean autoAck=false;
+        channel.basicConsume(QUEUE_NAME, false, consumer);
+
+
 
         while (true){
             QueueingConsumer.Delivery delivery=consumer.nextDelivery();
