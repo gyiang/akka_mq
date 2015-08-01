@@ -5,7 +5,8 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.MessageProperties;
 
-import java.io.IOException;
+import java.io.*;
+import java.util.Scanner;
 
 /**
  * Created by g1a@pdl on 2015/7/26.
@@ -28,18 +29,36 @@ public class EmitLog {
         String message=getMessage(args);
 
         //1交换机名 2队列名 3持久化标志 4消息
-        channel.basicPublish(EXECHANGE_NAME,"", null,message.getBytes());
-        System.out.println(" [x] Sent '" + message + "'");
+
+        for (int i = 0; i < 1000000 ; i++) {
+            channel.basicPublish(EXECHANGE_NAME,"", null,message.getBytes());
+            System.out.println(" [x] Sent '" +i + "'");
+        }
+
 
         channel.close();
         connection.close();
 
     }
 
-    private static String getMessage(String[] args) {
-        if (args.length<1)
-            return "hello world 123!";
-        return joinString(args," ");
+    private static String getMessage(String[] args) throws IOException {
+        //if (args.length<1)
+           // return "hello world 123!";
+        // return joinString(args," ");
+
+        File file=new File("E:\\t.html");
+        InputStream inputStream =new FileInputStream(file);
+        Scanner scanner=new Scanner(inputStream);
+
+        String line;
+        StringBuilder sb=new StringBuilder();
+         while (scanner.hasNext())
+         {
+             sb.append(scanner.nextLine());
+         }
+
+        System.out.println(sb.length());
+        return sb.toString();
     }
 
     private static String joinString(String[] args, String delimiter) {

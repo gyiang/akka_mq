@@ -23,7 +23,7 @@ public class ReceiveLog {
         Channel channel = connection.createChannel();
 
         channel.exchangeDeclare(EXCHANGE_NAME, "fanout");
-        // 声明一个随机名称的队列
+        // 声明一个随机名称的队列,随机队列名在宕机后不
         String queueName=channel.queueDeclare().getQueue();
         // 绑定交互机
         channel.queueBind(queueName,EXCHANGE_NAME,"");
@@ -33,11 +33,11 @@ public class ReceiveLog {
         QueueingConsumer consumer=new QueueingConsumer(channel);
         channel.basicConsume(queueName,true,consumer);
 
+        int cnt=1;
         while (true) {
             QueueingConsumer.Delivery delivery = consumer.nextDelivery();
             String message = new String(delivery.getBody());
-
-            System.out.println(" [x] Received '" + message + "'");
+            System.out.println(" [x] Received '" + message.substring(0,10) + "'");
         }
 
 
